@@ -1,23 +1,52 @@
 package onlineShop;
 
+import java.util.Properties;
+import javax.sql.DataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import onlineShop.log.Logger;
-import onlineShop.log.PaymentAction;
-import onlineShop.log.ServerLogger;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
+@EnableWebMvc
 public class ApplicationConfig {
 
-    @Bean
-    public Logger getLogger() {
-        return new ServerLogger();
-    }
+	@Bean(name = "sessionFactory")
+	public LocalSessionFactoryBean sessionFactory() {
+		LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+		sessionFactory.setDataSource(dataSource());
+		sessionFactory.setPackagesToScan("onlineShop.model");
+		sessionFactory.setHibernateProperties(hibernateProperties());
+		return sessionFactory;
+	}
 
-    @Bean(name = "paymentAction")
-    public  PaymentAction getPaymentAction() {
-         return new PaymentAction();
-    }
+	@Bean(name = "dataSource")
+	public DataSource dataSource() {
+		DriverManagerDataSource dataSource = new DriverManagerDataSource();
+		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+                        // change to your own RDS_Endpoint
+                        // change the username and password
+		dataSource.setUrl("jdbc:mysql://project-instance.ci6lg8lswr8t.us-east-2.rds.amazonaws.com:3306/ecommerce?serverTimezone=UTC");
+		dataSource.setUsername("admin");
+		dataSource.setPassword("88391439");
+
+		return dataSource;
+	}
+
+	@Bean
+	public MultipartResolver multipartResolver() {
+		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+		multipartResolver.setMaxUploadSize(10240000);
+		return multipartResolver;
+	}
+
+	private final Properties hibernateProperties() {
+		Properties hibernateProperties = new Properties();
+		hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
+		hibernateProperties.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
+		return hibernateProperties;
+	}
 }
-
